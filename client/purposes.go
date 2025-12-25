@@ -55,3 +55,20 @@ func (c *Client) GetPurposes(opts *GetPurposesOptions) (*GetPurposesResponse, er
 
 	return &resp, nil
 }
+
+type GetPurposeRequirementsResponse Response[[]string]
+
+func (c *Client) GetPurposeRequirements(purposeId int) (*GetPurposeRequirementsResponse, error) {
+	url := fmt.Sprintf("%s/v1/purposes/%d/requirements", c.BaseURL, purposeId)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp GetPurposeRequirementsResponse
+	if err := c.Do(req, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}

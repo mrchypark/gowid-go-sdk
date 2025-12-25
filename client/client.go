@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -49,4 +50,21 @@ func (c *Client) Do(req *http.Request, v interface{}) error {
 	}
 
 	return nil
+}
+
+func (c *Client) newRequest(method, url string, body interface{}) (*http.Request, error) {
+	var bodyReader io.Reader
+	if body != nil {
+		jsonBody, err := json.Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+		bodyReader = bytes.NewBuffer(jsonBody)
+	}
+
+	req, err := http.NewRequest(method, url, bodyReader)
+	if err != nil {
+		return nil, err
+	}
+	return req, nil
 }

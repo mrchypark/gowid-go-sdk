@@ -26,8 +26,9 @@ type Purpose struct {
 type GetPurposesResponse Response[[]Purpose]
 
 type GetPurposesOptions struct {
-	Limit int
-	Page  int
+	IsActivated *bool
+	Limit       int
+	Page        int
 }
 
 func (c *Client) GetPurposes(opts *GetPurposesOptions) (*GetPurposesResponse, error) {
@@ -39,6 +40,9 @@ func (c *Client) GetPurposes(opts *GetPurposesOptions) (*GetPurposesResponse, er
 
 	q := req.URL.Query()
 	if opts != nil {
+		if opts.IsActivated != nil {
+			q.Add("isActivated", fmt.Sprintf("%t", *opts.IsActivated))
+		}
 		if opts.Limit > 0 {
 			q.Add("limit", fmt.Sprintf("%d", opts.Limit))
 		}

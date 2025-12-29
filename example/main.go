@@ -5,8 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"gowid-api-go/client"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -20,7 +21,7 @@ func main() {
 
 	// Test GetMembers
 	fmt.Println("Testing GetMembers...")
-	members, err := c.GetMembers(&client.GetMembersOptions{Limit: 1})
+	members, err := c.GetMembers(&client.GetMembersOptions{})
 	if err != nil {
 		log.Fatalf("Error getting members: %v", err)
 	}
@@ -34,16 +35,32 @@ func main() {
 	fmt.Println("Testing GetExpenses...")
 	// Use a wide date range
 	expenses, err := c.GetExpenses(&client.GetExpensesOptions{
-		Limit:     1,
+		Size:      1,
 		StartDate: "2024-01-01",
-		EndDate:   "2025-12-31",
 	})
 	if err != nil {
 		fmt.Printf("Error getting expenses (known issue): %v\n", err)
 	} else {
-		fmt.Printf("Parsed %d expenses\n", len(expenses.Data))
-		if len(expenses.Data) > 0 {
-			fmt.Printf("First expense ID: %s\n", expenses.Data[0].ExpenseId)
+		fmt.Printf("Parsed %d expenses\n", len(expenses.Data.Content))
+		if len(expenses.Data.Content) > 0 {
+			fmt.Printf("First expense ID: %d\n", expenses.Data.Content[0].ExpenseId)
+		}
+	}
+	fmt.Println("--------------------------------------------------")
+
+	// Test GetExpenses with size/page
+	fmt.Println("Testing GetExpenses with size/page...")
+	expensesPage, err := c.GetExpenses(&client.GetExpensesOptions{
+		Size:      2,
+		Page:      1,
+		StartDate: "2024-01-01",
+	})
+	if err != nil {
+		fmt.Printf("Error getting expenses page: %v\n", err)
+	} else {
+		fmt.Printf("Parsed %d expenses on page\n", len(expensesPage.Data.Content))
+		if len(expensesPage.Data.Content) > 0 {
+			fmt.Printf("Page first expense ID: %d\n", expensesPage.Data.Content[0].ExpenseId)
 		}
 	}
 	fmt.Println("--------------------------------------------------")

@@ -28,6 +28,7 @@ https://openapi.gowid.com/actuator/health
 
 ---
 
+
 ## GET {{BASE_URL}}/v1/members - 법인에 소속된 사용자 정보 조회
 
 **Update**: - 응답에서 일부 필드들이 제거 되고, 부서/권한 정보가 새롭게 정의되어 추가 됩니다.
@@ -43,6 +44,7 @@ GET
 https://openapi.gowid.com/v1/members
 
 #### Parameters
+limit (optional, integer): 현재 서버에서 무시됨(전체 목록 반환)
 
 ### Response Example
 
@@ -65,8 +67,9 @@ https://openapi.gowid.com/v1/members
 						},
             "position": "얏",
             "role": { // 권한 정보
-	            "roleType": "ROLE_MASTER", // role type : ROLE_MASTER, ROLE_MANAGER, ROLE_VIEWER, ROLE_CUSTOM, ROLE_MEMBER
-	            "roleName": "슈퍼관리자", // role 이름
+	            "type": "ROLE_MASTER", // role type : ROLE_MASTER, ROLE_MANAGER, ROLE_VIEWER, ROLE_CUSTOM, ROLE_MEMBER
+	            "name": "슈퍼관리자", // role 이름
+	            "description": null
             },
             "notificationOnOff": true
         }
@@ -235,6 +238,13 @@ GET
 https://openapi.gowid.com/v1/expenses
 
 #### Parameters
+approvalState (optional, string): APPROVED, NOT_SUBMITTED, PARTIAL_APPROVED, REJECTED, SUBMITTED
+memo (optional, string): memo, purposeName, userName 중 하나만 사용
+purposeName (optional, string): memo, purposeName, userName 중 하나만 사용
+userName (optional, string): memo, purposeName, userName 중 하나만 사용
+startDate (required, string): yyyyMMdd 또는 yyyy-MM-dd
+size (optional, integer): 한 페이지에 조회할 데이터 건수
+page (optional, integer): 페이지 인덱스(0부터)
 
 ### Response Example
 
@@ -256,10 +266,10 @@ https://openapi.gowid.com/v1/expenses
         "useAmount": 12160.0,
         "currency": "KRW",
         "krwAmount": 12160,
-        "approvedAmount": 12160,
-        "approvedAt": "20230619113332",
+        "approvedAmount": 12160, // nullable
+        "approvedAt": "20230619113332", // nullable
         "approvalStatus": "SUBMITTED",
-        "purpose": {
+        "purpose": { // 목적 미지정 시 null
           "purposeId": 2598,
           "name": "야근교통비2",
           "limitType": "ITEM", // 이용내역 용도의 한도 유형
@@ -268,8 +278,10 @@ https://openapi.gowid.com/v1/expenses
           "hasRequirement": true // 이용내역 용도의 필수항목 설정 여부
         },
         "cardAlias": null,
+        "cardUserName": "홍길동",
         "shortCardNumber": "7897",
         "storeName": "KT유선상품 자동납부",
+        "storeAddress": "서울시 강남구 ...",
         "memo": "",
         "commentCount": 0,
         "evidenceCount": 0,
@@ -302,10 +314,10 @@ https://openapi.gowid.com/v1/expenses
         "useAmount": 11300.0,
         "currency": "KRW",
         "krwAmount": 11300,
-        "approvedAmount": 100,
-        "approvedAt": "20230614143346",
+        "approvedAmount": 100, // nullable
+        "approvedAt": "20230614143346", // nullable
         "approvalStatus": "SUBMITTED",
-        "purpose": {
+        "purpose": { // 목적 미지정 시 null
           "purposeId": 2703,
           "name": "용도(수정)",
           "limitType": "PERSON",
@@ -314,8 +326,10 @@ https://openapi.gowid.com/v1/expenses
           "hasRequirement": false
         },
         "cardAlias": null,
+        "cardUserName": "홍길동",
         "shortCardNumber": "9818",
         "storeName": "카카오페이(택시)",
+        "storeAddress": "서울시 ...",
         "memo": "apah",
         "commentCount": 2,
         "evidenceCount": 0,
@@ -384,6 +398,9 @@ https://openapi.gowid.com/v1/expenses/not-submitted
 
 #### Parameters
 
+size (optional, integer): 한 페이지에 노출할 데이터 건수
+page (optional, integer): 조회 페이지 오프셋(0부터)
+
 ### Response Example
 
 ```JSON
@@ -451,6 +468,9 @@ https://openapi.gowid.com/v1/expenses/not-submitted
 
 ---
 
+
+---
+
 ## GET {{BASE_URL}}/v1/purposes - 법인에서 정한 사용용도 정책 목록 조회
 
 **Update**: - 용도의 ‘활성여부’ 요청 파라미터가 추가 됩니다.
@@ -469,6 +489,9 @@ GET
 https://openapi.gowid.com/v1/purposes
 
 #### Parameters
+
+isActivated (optional, boolean): 활성/비활성 용도 필터(미지정 시 전체)
+limit (optional, integer): 현재 서버에서 무시됨(전체 목록 반환)
 
 ### Response Example
 
@@ -692,6 +715,7 @@ https://openapi.gowid.com/v1/expenses/{expenseId}/purposes
 **Update**: - 용도의 필수항목이 설정되어 있는 경우 RequestBody 에 필수항목 정보가 추가 됩니다.
 
 - 용도의 필수항목이 설정되어 있는 경우 응답에 필수항목 정보가 추가 됩니다.
+- 2025-12-29 기준 실제 호출 결과 50000000(서버 에러) 발생.
 
 ### Request
 
@@ -1175,6 +1199,7 @@ Request 및 Response 에 대해서 참고 부탁 드립니다.
 ## PUT {{BASE_URL}}/v1/expenses/{expenseId}/approval-status - 지출내역 수정 - 승인 상태 정보
 
 **Update**: - RequestBody 에서 approvedAt 필드가 추가 됩니다.
+- 승인 처리 시 응답의 approvedAt 값이 서버 시간으로 갱신될 수 있습니다.
 
 ### Request
 
@@ -1394,7 +1419,6 @@ https://openapi.gowid.com/v1/expenses/{expenseId}/comments
 ```JSON
 {
   "comment": "string"
-  "expenseId": 0
 }
 ```
 
@@ -1407,11 +1431,10 @@ https://openapi.gowid.com/v1/expenses/{expenseId}/comments
         "desc": "success"
     },
     "data": {
-        "commentId": 0,
+        "commentId": null,
         "author": "string",
-        "department": "string",
         "content": "string",
-        "createdAt": "2023-06-15T14:49:45.596"
+        "createdAt": "2025-12-29T18:59:54.679"
     }
 }
 ```

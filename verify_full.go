@@ -24,9 +24,6 @@ func main() {
 	runTest(apiKey, baseURL, "GET", "/v1/expenses?startDate=20251201&page=0", nil)
 
 	runTest(apiKey, baseURL, "GET", "/v1/expenses/not-submitted?page=0", nil)
-
-	// Probe for default card
-	runTest(apiKey, baseURL, "GET", "/v1/cards", nil)
 }
 
 func runTest(apiKey, baseURL, method, path string, body io.Reader) {

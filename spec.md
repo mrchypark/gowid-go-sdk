@@ -45,6 +45,8 @@ https://openapi.gowid.com/v1/members
 
 #### Parameters
 limit (optional, integer): 현재 서버에서 무시됨(전체 목록 반환)
+page (optional, integer): 현재 서버에서 무시됨(전체 목록 반환)
+size (optional, integer): 현재 서버에서 무시됨(전체 목록 반환)
 
 ### Response Example
 

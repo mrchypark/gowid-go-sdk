@@ -31,7 +31,6 @@ type Member struct {
 type GetMembersResponse Response[[]Member]
 
 type GetMembersOptions struct {
-	Page int
 }
 
 func (c *Client) GetMembers(opts *GetMembersOptions) (*GetMembersResponse, error) {
@@ -42,11 +41,6 @@ func (c *Client) GetMembers(opts *GetMembersOptions) (*GetMembersResponse, error
 	}
 
 	q := req.URL.Query()
-	if opts != nil {
-		if opts.Page > 0 {
-			q.Add("page", fmt.Sprintf("%d", opts.Page))
-		}
-	}
 	req.URL.RawQuery = q.Encode()
 
 	var resp GetMembersResponse

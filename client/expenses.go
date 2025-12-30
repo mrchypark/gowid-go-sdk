@@ -275,7 +275,7 @@ func (c *Client) UpdateExpensePurpose(expenseId string, req UpdatePurposeRequest
 	return c.doUpdateExpense(url, "PUT", req)
 }
 
-type UpdateExpensesPurposeRequest []struct {
+type UpdateExpensesPurposeItem struct {
 	ExpenseId                      int    `json:"expenseId"`
 	PurposeId                      int    `json:"purposeId"`
 	PurposeRequirementItem         string `json:"purposeRequirementItem,omitempty"`
@@ -283,6 +283,8 @@ type UpdateExpensesPurposeRequest []struct {
 	PurposeRequirementValue        string `json:"purposeRequirementValue,omitempty"`
 	IsPurposeRequirementInputValue bool   `json:"isPurposeRequirementInputValue"`
 }
+
+type UpdateExpensesPurposeRequest []UpdateExpensesPurposeItem
 
 type UpdateExpensesPurposeResponse = Response[bool]
 

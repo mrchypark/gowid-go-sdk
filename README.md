@@ -1,1 +1,1 @@
-# gowid-api
+# gowid-go-sdk

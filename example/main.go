@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"gowid-api-go/client"
+	"github.com/mrchypark/gowid-go-sdk/client"
 
 	"github.com/joho/godotenv"
 )

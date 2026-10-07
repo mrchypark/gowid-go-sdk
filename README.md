@@ -140,8 +140,9 @@ API_KEY=… go run verify_full.go
 
 ## Breaking changes
 
-The SDK is unreleased, so these V1 corrections were made to match the official
-spec rather than to preserve an earlier wire contract. Migrate as follows.
+The SDK is in initial v0.x development, so these V1 corrections were made to
+match the official spec rather than to preserve an earlier wire contract.
+Migrate as follows.
 
 - `GetMembers()` no longer takes an options struct; the spec defines no query
   parameters for it.

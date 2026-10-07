@@ -8,16 +8,16 @@ import (
 type MemberRole struct {
 	Type        string `json:"type"`
 	Name        string `json:"name"`
-	Description string `json:"description"` // Can be null
+	Description string `json:"description"`
 }
 
 type MemberDepartment struct {
-	ID   int    `json:"id"`
+	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
 type Member struct {
-	UserID            int              `json:"userId"`
+	UserID            int64            `json:"userId"`
 	UserName          string           `json:"userName"`
 	Email             string           `json:"email"`
 	IsContractor      bool             `json:"isContractor"`
@@ -30,18 +30,12 @@ type Member struct {
 
 type GetMembersResponse Response[[]Member]
 
-type GetMembersOptions struct {
-}
-
-func (c *Client) GetMembers(opts *GetMembersOptions) (*GetMembersResponse, error) {
+func (c *Client) GetMembers() (*GetMembersResponse, error) {
 	url := fmt.Sprintf("%s/v1/members", c.BaseURL)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	q := req.URL.Query()
-	req.URL.RawQuery = q.Encode()
 
 	var resp GetMembersResponse
 	if err := c.Do(req, &resp); err != nil {

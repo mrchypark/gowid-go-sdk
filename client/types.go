@@ -6,8 +6,16 @@ type Result struct {
 }
 
 type Response[T any] struct {
-	Result Result `json:"result"`
-	Data   T      `json:"data"`
+	Result     Result `json:"result"`
+	TotalCount int64  `json:"totalCount"`
+	Data       T      `json:"data"`
+}
+
+// PageOptions covers the shared page/size/sort query parameters.
+type PageOptions struct {
+	Page int
+	Size int
+	Sort string
 }
 
 type PageInfo struct {

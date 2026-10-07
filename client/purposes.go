@@ -3,32 +3,44 @@ package client
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 type Category struct {
-	CategoryId int    `json:"categoryId"`
+	CategoryId int64  `json:"categoryId"`
 	Name       string `json:"name"`
 }
 
+// PurposeRequirement is the V1 requirement item. Per the official spec,
+// purposeId and options are writeOnly: they are accepted on input but the
+// server does not return them on GET /v1/purposes.
+type PurposeRequirement struct {
+	Id               int64    `json:"id"`
+	PurposeId        int64    `json:"purposeId,omitempty"`
+	Type             string   `json:"type"`
+	Item             string   `json:"item"`
+	Options          []string `json:"options,omitempty"`
+	GuideDesc        string   `json:"guideDesc"`
+	IsAvailableInput bool     `json:"isAvailableInput"`
+}
+
 type Purpose struct {
-	PurposeId      int         `json:"purposeId"`
-	Name           string      `json:"name"`
-	Category       Category    `json:"category"`
-	ListOrder      int         `json:"listOrder"`
-	LimitType      string      `json:"limitType"`
-	LimitAmount    int         `json:"limitAmount"`
-	IsActivated    bool        `json:"isActivated"`
-	HasRequirement bool        `json:"hasRequirement"`
-	Requirement    interface{} `json:"requirement"` // Using interface{} as it can be null or complex object
-	IsDeducted     bool        `json:"isDeducted"`
+	PurposeId      int64               `json:"purposeId"`
+	Name           string              `json:"name"`
+	Category       Category            `json:"category"`
+	ListOrder      int                 `json:"listOrder"`
+	LimitType      string              `json:"limitType"`
+	LimitAmount    int64               `json:"limitAmount"`
+	IsActivated    bool                `json:"isActivated"`
+	HasRequirement bool                `json:"hasRequirement"`
+	Requirement    *PurposeRequirement `json:"requirement"`
+	IsDeducted     bool                `json:"isDeducted"`
 }
 
 type GetPurposesResponse Response[[]Purpose]
 
 type GetPurposesOptions struct {
 	IsActivated *bool
-	Limit       int
-	Page        int
 }
 
 func (c *Client) GetPurposes(opts *GetPurposesOptions) (*GetPurposesResponse, error) {
@@ -39,16 +51,8 @@ func (c *Client) GetPurposes(opts *GetPurposesOptions) (*GetPurposesResponse, er
 	}
 
 	q := req.URL.Query()
-	if opts != nil {
-		if opts.IsActivated != nil {
-			q.Add("isActivated", fmt.Sprintf("%t", *opts.IsActivated))
-		}
-		if opts.Limit > 0 {
-			q.Add("limit", fmt.Sprintf("%d", opts.Limit))
-		}
-		if opts.Page > 0 {
-			q.Add("page", fmt.Sprintf("%d", opts.Page))
-		}
+	if opts != nil && opts.IsActivated != nil {
+		q.Add("isActivated", strconv.FormatBool(*opts.IsActivated))
 	}
 	req.URL.RawQuery = q.Encode()
 
@@ -60,9 +64,16 @@ func (c *Client) GetPurposes(opts *GetPurposesOptions) (*GetPurposesResponse, er
 	return &resp, nil
 }
 
-type GetPurposeRequirementsResponse Response[[]string]
+type PurposeRequirementContent struct {
+	Content []string `json:"content"`
+}
 
-func (c *Client) GetPurposeRequirements(purposeId int) (*GetPurposeRequirementsResponse, error) {
+type GetPurposeRequirementsResponse Response[PurposeRequirementContent]
+
+func (c *Client) GetPurposeRequirements(purposeId int64) (*GetPurposeRequirementsResponse, error) {
+	if purposeId <= 0 {
+		return nil, fmt.Errorf("invalid purposeId %d: must be a positive int64", purposeId)
+	}
 	url := fmt.Sprintf("%s/v1/purposes/%d/requirements", c.BaseURL, purposeId)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

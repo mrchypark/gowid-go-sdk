@@ -4,76 +4,53 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/mrchypark/gowid-go-sdk/client"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-	}
-
 	apiKey := os.Getenv("API_KEY")
-
+	if apiKey == "" {
+		log.Fatal("set API_KEY to the key issued by Gowid")
+	}
 	c := client.NewClient(apiKey)
+	start, end := last30Days()
 
-	// Test GetMembers
-	fmt.Println("Testing GetMembers...")
-	members, err := c.GetMembers(&client.GetMembersOptions{})
+	members, err := c.GetMembers()
 	if err != nil {
-		log.Fatalf("Error getting members: %v", err)
+		log.Fatalf("GetMembers: %v", err)
 	}
-	fmt.Printf("Parsed %d members\n", len(members.Data))
-	if len(members.Data) > 0 {
-		fmt.Printf("First member: %+v\n", members.Data[0])
-	}
-	fmt.Println("--------------------------------------------------")
+	fmt.Printf("members: %d\n", len(members.Data))
 
-	// Test GetExpenses
-	fmt.Println("Testing GetExpenses...")
-	// Use a wide date range
-	expenses, err := c.GetExpenses(&client.GetExpensesOptions{
-		Size:      1,
-		StartDate: "2024-01-01",
+	// Dates are yyyyMMdd and both bounds are inclusive.
+	statements, err := c.GetExpenseStatementsV2(&client.ExpenseSearchOptionsV2{
+		StartDate: start,
+		EndDate:   end,
+		Page:      0,
+		Size:      20,
 	})
 	if err != nil {
-		fmt.Printf("Error getting expenses (known issue): %v\n", err)
-	} else {
-		fmt.Printf("Parsed %d expenses\n", len(expenses.Data.Content))
-		if len(expenses.Data.Content) > 0 {
-			fmt.Printf("First expense ID: %d\n", expenses.Data.Content[0].ExpenseId)
+		log.Fatalf("GetExpenseStatementsV2: %v", err)
+	}
+	fmt.Printf("statements %s..%s: %d\n", start, end, statements.TotalCount)
+	for i, s := range statements.Data.Content {
+		// Print only non-personal summary fields.
+		alias := ""
+		if s.CardAlias != nil {
+			alias = *s.CardAlias
+		}
+		fmt.Printf("  %s %d %s %s\n", s.ExpenseDate, s.KRWAmount, s.Currency, alias)
+		if i == 4 {
+			fmt.Printf("  ... %d more\n", len(statements.Data.Content)-i-1)
+			break
 		}
 	}
-	fmt.Println("--------------------------------------------------")
+}
 
-	// Test GetExpenses with size/page
-	fmt.Println("Testing GetExpenses with size/page...")
-	expensesPage, err := c.GetExpenses(&client.GetExpensesOptions{
-		Size:      2,
-		Page:      1,
-		StartDate: "2024-01-01",
-	})
-	if err != nil {
-		fmt.Printf("Error getting expenses page: %v\n", err)
-	} else {
-		fmt.Printf("Parsed %d expenses on page\n", len(expensesPage.Data.Content))
-		if len(expensesPage.Data.Content) > 0 {
-			fmt.Printf("Page first expense ID: %d\n", expensesPage.Data.Content[0].ExpenseId)
-		}
-	}
-	fmt.Println("--------------------------------------------------")
-
-	// Test GetPurposes
-	fmt.Println("Testing GetPurposes...")
-	purposes, err := c.GetPurposes(&client.GetPurposesOptions{Limit: 1})
-	if err != nil {
-		log.Fatalf("Error getting purposes: %v", err)
-	}
-	fmt.Printf("Parsed %d purposes\n", len(purposes.Data))
-	if len(purposes.Data) > 0 {
-		fmt.Printf("First purpose: %+v\n", purposes.Data[0])
-	}
-	fmt.Println("--------------------------------------------------")
+// last30Days returns the last 30 days up to today in KST as yyyyMMdd strings.
+func last30Days() (start, end string) {
+	kst := time.FixedZone("KST", 9*60*60)
+	now := time.Now().In(kst)
+	return now.AddDate(0, 0, -29).Format("20060102"), now.Format("20060102")
 }
